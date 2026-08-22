@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Powerhouse - Control de Asistencia y Recuperaciones</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/web/css/style.css?v=8">
+</head>
+<body class="dark-mode">
+    <!-- Landing Page (Página de Ingreso) -->
+    <div id="landing-page" class="landing-container">
+        <div class="landing-card-wrapper">
+            <div class="landing-logo">
+                <img src="/web/images/logo.jpg" alt="Powerhouse Logo" class="landing-logo-img">
+            </div>
+            <p class="landing-subtitle">Control de Asistencia y Gestión de Recuperaciones</p>
+            
+            <div class="role-cards-container" id="landing-role-cards">
+                <!-- Tarjeta Alumno -->
+                <div class="role-card card-student" id="card-select-student">
+                    <div class="role-card-icon">
+                        <i class="fa-solid fa-child-reaching"></i>
+                    </div>
+                    <h3>Ingreso Alumno</h3>
+                    <p>Reporta inasistencias, revisa tus créditos del mes y reserva tus clases de recuperación de forma autónoma.</p>
+                    <div class="role-card-footer">
+                        <span>Ingresar</span>
+                        <i class="fa-solid fa-arrow-right-long"></i>
+                    </div>
+                </div>
+                
+                <!-- Tarjeta Administrador -->
+                <div class="role-card card-admin" id="card-select-admin">
+                    <div class="role-card-icon">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </div>
+                    <h3>Ingreso Administrador</h3>
+                    <p>Gestiona alumnos, define horarios recurrentes, asigna turnos fijos y administra la agenda del estudio.</p>
+                    <div class="role-card-footer">
+                        <span>Acceder</span>
+                        <i class="fa-solid fa-arrow-right-long"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Login (Oculto al inicio) -->
+            <div class="login-form-container hidden" id="login-form-box">
+                <div class="login-form-header">
+                    <button class="btn btn-secondary btn-sm btn-back" id="btn-login-back">
+                        <i class="fa-solid fa-arrow-left"></i> Volver
+                    </button>
+                    <h3 id="login-title">Ingreso</h3>
+                </div>
+                <form id="form-auth-login">
+                    <div class="form-group">
+                        <label for="login-username">Usuario</label>
+                        <input type="text" id="login-username" placeholder="Ingresa tu usuario" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" placeholder="Ingresa tu contraseña" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full" id="btn-login-submit">
+                        <span>Entrar</span>
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Main Dashboard Container (Oculto al inicio) -->
+    <div class="app-container vertical hidden" id="app-dashboard">
+        
+        <!-- Header superior horizontal -->
+        <header class="main-header">
+            <div class="header-brand">
+                <img src="/web/images/logo.jpg" alt="Powerhouse Logo" class="brand-logo-img">
+            </div>
+            
+            <nav class="header-menu">
+                <a href="#" class="menu-item active" id="menu-agenda">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Agenda Semanal</span>
+                </a>
+                <a href="#" class="menu-item" id="menu-students" data-admin-only="true">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>Administración</span>
+                </a>
+                <a href="#" class="menu-item" id="menu-payments" data-admin-only="true">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span>Pagos</span>
+                </a>
+            </nav>
+            
+            <div class="header-controls">
+                <!-- Selector de Alumno (Modo Alumno) -->
+                <div class="student-selector-inline" id="student-selector-box" style="display: none;">
+                    <select id="student-select">
+                        <!-- Cargado dinámicamente -->
+                    </select>
+                    <div class="credits-pill">
+                        <span>Créditos: <strong id="student-credits-val">0</strong></span>
+                    </div>
+                    <div class="credits-pill" id="student-payment-pill" style="margin-left: 10px;">
+                        <span>Pago: <strong id="student-payment-val">Cargando...</strong></span>
+                    </div>
+                </div>
+
+                <!-- Info del Rol Actual -->
+                <div class="user-role-badge badge-admin" id="current-role-badge">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>Administrador</span>
+                </div>
+
+                <!-- Botón de Salida a Landing -->
+                <button id="btn-logout" class="btn btn-secondary btn-sm" title="Volver al Inicio">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Salir</span>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Contenido principal -->
+        <main class="main-content">
+            
+            <!-- Área de Agenda Semanal -->
+            <section class="tab-content" id="tab-agenda-content">
+                <!-- Banner de Advertencia por Impago (Oculto por defecto) -->
+                <div id="unpaid-warning-banner" class="warning-banner hidden">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span><strong>Aviso importante:</strong> Aún no registramos tu pago para el mes en curso. Por favor regulariza tu cuota mensual.</span>
+                </div>
+
+                <!-- Sub-barra para Agenda (Título + Navegación Semanal) -->
+                <div class="subbar">
+                    <div class="welcome">
+                        <h2 id="view-title">Agenda Semanal de Clases</h2>
+                        <p id="view-subtitle">Gestiona la ocupación y reservas de recuperación (Capacidad: 10 alumnos/clase)</p>
+                    </div>
+                    
+                    <div class="week-navigation">
+                        <button class="btn btn-secondary btn-icon-only" id="btn-prev-week" title="Semana Anterior">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <span class="week-label" id="week-range-label">Cargando fechas...</span>
+                        <button class="btn btn-secondary btn-icon-only" id="btn-next-week" title="Semana Siguiente">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="agenda-grid" id="agenda-container">
+                    <!-- Las columnas de los días se inyectarán de forma dinámica -->
+                </div>
+            </section>
+
+            <!-- Área de Gestión de Alumnos (Sólo Admin) -->
+            <section class="tab-content hidden" id="tab-students-content">
+                <!-- Sub-barra para Administración -->
+                <div class="subbar">
+                    <div class="welcome">
+                        <h2>Administración del Estudio</h2>
+                        <p>Gestiona la lista de alumnos, turnos semanales y asignación de horarios recurrentes</p>
+                    </div>
+                </div>
+                <div class="students-dashboard-layout">
+                    <!-- Formularios de Alta (Alumnos y Turnos) y Listado de Turnos -->
+                    <div class="left-admin-column" style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="glass-panel student-form-panel">
+                            <h3><i class="fa-solid fa-user-plus icon-accent"></i> Registrar Nuevo Alumno</h3>
+                            <form id="new-student-form">
+                                <div class="form-group">
+                                    <label for="st-name">Nombre Completo</label>
+                                    <input type="text" id="st-name" placeholder="Ej: Ana Gómez" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="st-email">Correo Electrónico</label>
+                                    <input type="email" id="st-email" placeholder="Ej: ana@gmail.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="st-username">Usuario de Acceso</label>
+                                    <input type="text" id="st-username" placeholder="Ej: anagomez" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="st-password">Contraseña</label>
+                                    <input type="password" id="st-password" placeholder="Mínimo 6 caracteres" minlength="6" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Turnos Fijos Semanales (Seleccionar 1, 2 o 3)</label>
+                                    <div id="st-templates-checkboxes" style="display: flex; flex-direction: column; gap: 10px; max-height: 150px; overflow-y: auto; padding: 10px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);">
+                                        <!-- Cargado dinámicamente con checkboxes -->
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Registrar Alumno</button>
+                            </form>
+
+                            <hr class="panel-divider" style="margin: 25px 0; border: 0; height: 1px; background: var(--border-color);">
+
+                            <h3><i class="fa-solid fa-calendar-plus icon-accent"></i> Crear Turno Semanal</h3>
+                            <form id="new-template-form">
+                                <div class="form-group">
+                                    <label for="tmp-day">Día de la Semana</label>
+                                    <select id="tmp-day" required>
+                                        <option value="0">Lunes</option>
+                                        <option value="1">Martes</option>
+                                        <option value="2">Miércoles</option>
+                                        <option value="3">Jueves</option>
+                                        <option value="4">Viernes</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="tmp-time">Hora (HH:MM)</label>
+                                    <input type="text" id="tmp-time" placeholder="Ej: 10:00" pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$" title="Formato HH:MM de 24 horas" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="tmp-capacity">Capacidad Máxima</label>
+                                    <input type="number" id="tmp-capacity" value="10" min="1" max="30" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Crear Turno</button>
+                            </form>
+                        </div>
+
+                        <!-- Listado de Turnos Creados -->
+                        <div class="glass-panel templates-list-panel">
+                            <h3><i class="fa-solid fa-calendar-days icon-accent"></i> Turnos Semanales Activos</h3>
+                            <div class="templates-list-container" style="max-height: 250px; overflow-y: auto;">
+                                <ul id="active-templates-list" class="students-list" style="margin: 0; padding: 0;">
+                                    <!-- Cargado dinámicamente -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Listado de Alumnos y Asignación de Turnos -->
+                    <div class="glass-panel students-list-panel">
+                        <h3><i class="fa-solid fa-list icon-accent"></i> Alumnos Registrados</h3>
+                        
+                        <!-- Buscador de Alumnos -->
+                        <div class="search-container" style="margin-bottom: 15px; position: relative;">
+                            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem;"></i>
+                            <input type="text" id="search-students-input" placeholder="Buscar alumno por nombre o email..." style="width: 100%; padding: 8px 12px 8px 35px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); color: var(--text-primary); font-family: inherit; font-size: 0.85rem; transition: var(--transition-smooth);">
+                        </div>
+                        
+                        <div class="table-container">
+                            <table class="students-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Créditos</th>
+                                        <th>Estado Pago</th>
+                                        <th>Turnos Fijos Semanales</th>
+                                        <th>Asignar Turno</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="students-table-body">
+                                    <!-- Cargado dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Área de Gestión de Pagos (Sólo Admin) -->
+            <section class="tab-content hidden" id="tab-payments-content">
+                <!-- Sub-barra para Pagos -->
+                <div class="subbar">
+                    <div class="welcome">
+                        <h2>Control de Pagos Mensuales</h2>
+                        <p>Consulta quiénes deben la cuota del mes y quiénes ya han abonado</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel" style="width: 100%;">
+                    <!-- Fila de Filtros y Búsqueda -->
+                    <div class="payments-filter-bar" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                        
+                        <!-- Buscador -->
+                        <div class="search-container" style="margin: 0; flex: 1; min-width: 250px; position: relative;">
+                            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem;"></i>
+                            <input type="text" id="search-payments-input" placeholder="Buscar alumno por nombre..." style="width: 100%; padding: 8px 12px 8px 35px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); color: var(--text-primary); font-family: inherit; font-size: 0.85rem; transition: var(--transition-smooth);">
+                        </div>
+
+                        <!-- Selector de Mes -->
+                        <div class="filter-group" style="display: flex; align-items: center; gap: 8px;">
+                            <label for="admin-payments-month-select" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0;">Mes:</label>
+                            <input type="month" id="admin-payments-month-select" style="padding: 6px 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); color: var(--text-primary); font-family: inherit; font-size: 0.85rem;">
+                        </div>
+
+                        <!-- Filtro de Estado -->
+                        <div class="filter-group" style="display: flex; gap: 5px;">
+                            <button class="btn btn-secondary btn-sm active btn-filter-pay-status" data-filter="all" style="width: auto; padding: 6px 14px;">Todos</button>
+                            <button class="btn btn-secondary btn-sm btn-filter-pay-status" data-filter="paid" style="width: auto; padding: 6px 14px; color: var(--color-success);">Pagados</button>
+                            <button class="btn btn-secondary btn-sm btn-filter-pay-status" data-filter="unpaid" style="width: auto; padding: 6px 14px; color: var(--color-warning);">Deudores</button>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Cobros -->
+                    <div class="table-container">
+                        <table class="students-table">
+                            <thead>
+                                <tr>
+                                    <th>Alumno</th>
+                                    <th>Email</th>
+                                    <th>Mes</th>
+                                    <th>Monto Abonado</th>
+                                    <th>Fecha de Pago</th>
+                                    <th>Estado Cuota</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-payments-table-body">
+                                <!-- Cargado dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL 1: Detalle del Turno (Para Administrador) -->
+    <div class="modal-backdrop hidden" id="class-detail-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock icon-accent"></i> Detalle de Turno</h3>
+                <button class="btn-close modal-close-trigger"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="class-summary-card">
+                    <div class="date-badge">
+                        <span id="modal-class-day">Lunes</span>
+                        <h4 id="modal-class-date">22/06</h4>
+                    </div>
+                    <div class="class-meta">
+                        <h3 id="modal-class-time">18:00 hs</h3>
+                        <div class="capacity-bar-container">
+                            <div class="capacity-bar-fill" id="modal-capacity-fill" style="width: 60%;"></div>
+                        </div>
+                        <span id="modal-class-occupancy">6 / 10 alumnos</span>
+                    </div>
+                </div>
+
+                <div class="modal-tabs">
+                    <button class="modal-tab-btn active" data-modal-tab="tab-attendees">Asistencia</button>
+                    <button class="modal-tab-btn" data-modal-tab="tab-assign-fixed">Asignar Horario Fijo</button>
+                </div>
+
+                <!-- Pestaña Listado Asistencia -->
+                <div class="modal-tab-content" id="tab-attendees">
+                    <div class="attendees-section">
+                        <h4>Alumnos Confirmados (Fijos)</h4>
+                        <ul class="students-list" id="modal-fixed-list">
+                            <!-- Inyectado dinámicamente -->
+                        </ul>
+                    </div>
+                    
+                    <div class="attendees-section">
+                        <h4>Recuperaciones Reservadas</h4>
+                        <ul class="students-list" id="modal-recovery-list">
+                            <!-- Inyectado dinámicamente -->
+                        </ul>
+                    </div>
+
+                    <div class="attendees-section">
+                        <h4>Liberaron Turno (Ausentes)</h4>
+                        <ul class="students-list" id="modal-absent-list">
+                            <!-- Inyectado dinámicamente -->
+                        </ul>
+                    </div>
+                    
+                    <!-- Formulario de Recuperación Rápida desde Admin -->
+                    <div class="quick-booking-container" id="admin-quick-recovery-box">
+                        <h4><i class="fa-solid fa-circle-plus"></i> Agendar Recuperación Manual</h4>
+                        <div class="booking-row">
+                            <select id="admin-recovery-student-select">
+                                <option value="">Seleccione un alumno con créditos...</option>
+                            </select>
+                            <button class="btn btn-success" id="btn-admin-submit-recovery">Reservar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pestaña Asignar Horario Fijo -->
+                <div class="modal-tab-content hidden" id="tab-assign-fixed">
+                    <form id="assign-fixed-form">
+                        <p class="section-desc">Registra a un alumno para que asista semanalmente a este horario de forma fija.</p>
+                        <div class="form-group">
+                            <label for="assign-student-select">Seleccionar Alumno</label>
+                            <select id="assign-student-select" required>
+                                <option value="">Cargando alumnos...</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Asignar Horario Fijo</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Modificar Credenciales del Alumno -->
+    <div class="modal-backdrop hidden" id="student-credentials-modal">
+        <div class="modal-card" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-key icon-accent"></i> Modificar Credenciales</h3>
+                <button class="btn-close" id="btn-credentials-modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-update-student-credentials">
+                    <input type="hidden" id="cred-student-id">
+                    <p class="section-desc">Actualiza el usuario y/o la contraseña para <strong id="cred-student-name">Alumno</strong>.</p>
+                    
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="cred-username">Nombre de Usuario</label>
+                        <input type="text" id="cred-username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cred-password">Nueva Contraseña (Opcional)</label>
+                        <input type="password" id="cred-password" placeholder="Dejar en blanco para mantener actual" minlength="6">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full" style="margin-top: 20px;">
+                        Guardar Cambios
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Historial y Registro de Pagos -->
+    <div class="modal-backdrop hidden" id="student-payments-modal">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-credit-card icon-accent"></i> Registro de Pagos</h3>
+                <button class="btn-close" id="btn-payments-modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="section-desc">Historial y cobros para <strong id="pay-student-name">Alumno</strong>.</p>
+                
+                <!-- Historial de Pagos -->
+                <div class="payment-history-section" style="margin-top: 15px;">
+                    <h4>Historial de Pagos Registrados</h4>
+                    <div style="max-height: 180px; overflow-y: auto; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 5px;">
+                        <table class="students-table" style="font-size: 0.85rem; margin: 0; background: transparent;">
+                            <thead>
+                                <tr>
+                                    <th>Mes</th>
+                                    <th>Monto</th>
+                                    <th>Fecha Pago</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payment-history-body">
+                                <!-- Cargado dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Formulario de Registro de Pago -->
+                <div class="payment-register-section" style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <h4>Registrar Nuevo Pago del Mes</h4>
+                    <form id="form-register-payment" style="margin-top: 10px;">
+                        <input type="hidden" id="pay-student-id">
+                        
+                        <div class="booking-row" style="display: flex; gap: 10px; align-items: flex-end;">
+                            <div class="form-group" style="flex: 1; margin: 0;">
+                                <label for="pay-month">Mes a Pagar</label>
+                                <input type="month" id="pay-month" required>
+                            </div>
+                            
+                            <div class="form-group" style="flex: 1; margin: 0;">
+                                <label for="pay-amount">Monto ($)</label>
+                                <input type="number" id="pay-amount" placeholder="Ej: 8000" min="0" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-success" style="height: 38px;">
+                                <i class="fa-solid fa-plus"></i> Registrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Toasts -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Custom JS -->
+    <script src="/web/js/app.js?v=8"></script>
+</body>
+</html>
