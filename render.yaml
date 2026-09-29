@@ -1,0 +1,27 @@
+# Configuración para publicar Control de Turnos en Render (render.com).
+# En Render: New > Blueprint > elegí este repositorio. Render lee este archivo
+# y te pide completar los valores marcados con "sync: false".
+services:
+  - type: web
+    name: control-de-turnos
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: DEBUG
+        value: "False"
+      # Dirección de la base de datos PostgreSQL (por ejemplo, la de Neon).
+      - key: DATABASE_URL
+        sync: false
+      # Usuario y contraseña del primer administrador (los elegís vos).
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        value: "Paula"
