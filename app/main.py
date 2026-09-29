@@ -14,6 +14,32 @@ from app.database import get_db, engine
 # Asegurar que se crean las tablas al iniciar la aplicación
 models.Base.metadata.create_all(bind=engine)
 
+
+def ensure_initial_admin():
+    """Crea el primer administrador si la base todavía no tiene ninguno.
+
+    Usa las variables de entorno ADMIN_USERNAME y ADMIN_PASSWORD. Así, la primera
+    vez que la app arranca en Render con la base vacía, ya se puede ingresar.
+    Si ya existe algún administrador, no hace nada.
+    """
+    if not (config.ADMIN_USERNAME and config.ADMIN_PASSWORD):
+        return
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        if db.query(models.Administrator).first() is None:
+            crud.create_admin(db, schemas.AdminCreate(
+                name=config.ADMIN_NAME,
+                username=config.ADMIN_USERNAME,
+                password=config.ADMIN_PASSWORD,
+            ))
+            print(f"Administrador inicial creado: {config.ADMIN_USERNAME}")
+    finally:
+        db.close()
+
+
+ensure_initial_admin()
+
 app = FastAPI(
     title="Pilates Studio Booking Manager",
     description="Sistema de gestión de turnos, asistencias y recuperaciones de Pilates",
@@ -379,6 +405,26 @@ def read_root():
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return {"message": "Dashboard index.html no encontrado. Asegúrese de colocarlo en el directorio web/."}
+
+# Instalación como app (PWA): el manifest y el service worker se sirven desde la
+# raíz del sitio para que la app instalable abarque todas las páginas.
+_web_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web")
+
+@app.get("/manifest.webmanifest", include_in_schema=False)
+def web_manifest():
+    return FileResponse(os.path.join(_web_dir, "manifest.webmanifest"),
+                        media_type="application/manifest+json")
+
+@app.get("/sw.js", include_in_schema=False)
+def service_worker():
+    return FileResponse(os.path.join(_web_dir, "sw.js"),
+                        media_type="application/javascript",
+                        headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"})
+
+@app.get("/health", include_in_schema=False)
+def health():
+    """Chequeo simple que usa Render para saber que la app está en marcha."""
+    return {"status": "ok"}
 
 # Servir estáticos
 static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web")

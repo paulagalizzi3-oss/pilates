@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Powerhouse - Control de Asistencia y Recuperaciones</title>
     <!-- Google Fonts -->
+    <!-- Instalación como app (PWA) -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0D0F12">
+    <link rel="icon" type="image/png" sizes="192x192" href="/web/images/icon-192.png">
+    <link rel="apple-touch-icon" href="/web/images/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Turnos">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -499,5 +508,13 @@
 
     <!-- Custom JS -->
     <script src="/web/js/app.js?v=8"></script>
+    <script>
+      // Registrar el service worker para que la app se pueda instalar
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+        });
+      }
+    </script>
 </body>
 </html>

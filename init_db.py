@@ -4,7 +4,13 @@ from app import models, database
 
 def seed_data():
     import os
-    db_file = "C:/Users/paula/.gemini/antigravity/scratch/pilates-control-app/pilates.db"
+    from app import config
+    # Estos son datos de PRUEBA: solo se cargan en la base local (SQLite),
+    # nunca en la base real de Render.
+    if not config.DATABASE_URL.startswith("sqlite"):
+        print("DATABASE_URL apunta a una base real: no se cargan datos de prueba.")
+        return
+    db_file = config.SQLITE_PATH
     if os.path.exists(db_file):
         try:
             os.remove(db_file)
