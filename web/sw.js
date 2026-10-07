@@ -1,11 +1,12 @@
 // Service worker de Control de Turnos.
 // Permite instalar la app y que abra rápido. Los datos (/api/...) SIEMPRE se
 // piden al servidor: nunca se muestran turnos o créditos viejos guardados.
-const CACHE = 'turnos-v1';
+const CACHE = 'turnos-v2';
 const SHELL = [
   '/',
   '/web/css/style.css?v=8',
   '/web/js/app.js?v=8',
+  '/web/js/install.js?v=1',
   '/web/images/logo.jpg',
   '/web/images/icon-192.png',
   '/web/offline.html',
