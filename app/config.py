@@ -10,13 +10,25 @@ SQLITE_PATH = os.path.join(BASE_DIR, "pilates.db")
 # En tu compu (desarrollo) sigue usando SQLite si no hay DATABASE_URL definida.
 # En Render (producción) vas a definir la variable de entorno DATABASE_URL
 # apuntando a tu base PostgreSQL, y esta línea la va a tomar automáticamente.
-DATABASE_URL = os.getenv("DATABASE_URL") or f"sqlite:///{SQLITE_PATH}"
+def _clean_database_url(raw: str) -> str:
+    """Deja la dirección de la base lista para usar, aunque se haya pegado
+    con espacios, comillas o el comando `psql` adelante (como la muestra Neon)."""
+    url = (raw or "").strip()
+    if url.lower().startswith("psql "):
+        url = url[5:].strip()
+    url = url.strip("'\"").strip()
+    if not url:
+        return ""
+    # Render, Neon y otros entregan "postgres://" o "postgresql://". Indicamos
+    # siempre el conector psycopg2 (el que está en requirements.txt): las
+    # versiones nuevas de SQLAlchemy, si no se aclara, buscan otro conector.
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg2://" + url[len(prefix):]
+    return url
 
-# Render (y la mayoría de los servicios de PostgreSQL) entregan la URL con el
-# prefijo "postgres://", pero SQLAlchemy moderno requiere "postgresql://".
-# Esta línea corrige eso automáticamente, sin que tengas que tocar nada a mano.
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+DATABASE_URL = _clean_database_url(os.getenv("DATABASE_URL", "")) or f"sqlite:///{SQLITE_PATH}"
 
 HOST = os.getenv("HOST", "127.0.0.1")
 PORT = int(os.getenv("PORT", 8000))
